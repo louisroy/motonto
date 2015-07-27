@@ -12,8 +12,8 @@ var creds = {
 	private_key:process.env.PRIVATE_KEY
 };
 
-var locations = [ 1700273 ]; // Toronto
-var categories = [ 303, 304, 305, 306, 307, 308 ] ; // Motorcycles
+var locations = process.env.LOCATION_IDS.split(','); // Toronto
+var categories = process.env.CATEGORY_IDS.split(','); // Motorcycles
 var existingGuids = [];
 
 sheet.useServiceAccountAuth(creds, function(err) {
