@@ -1,17 +1,26 @@
 {
-  "name": "kijiji",
+  "name": "motonto",
   "version": "1.0.0",
-  "description": "",
+  "description": "Fetches Kijiji ads for motorcycles in Toroton and stores them into a Google Spreadsheet.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "dotenv": "^1.2.0",
     "google-spreadsheet": "^1.0.1",
     "kijiji-scraper": "^1.2.0",
     "underscore": "^1.8.3"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/louisroy/motonto.git"
+  },
+  "bugs": {
+    "url": "https://github.com/louisroy/motonto/issues"
+  },
+  "homepage": "https://github.com/louisroy/motonto#readme"
 }
