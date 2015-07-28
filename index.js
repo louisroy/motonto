@@ -3,33 +3,54 @@ require('dotenv').load();
 
 // Required modules
 var _ = require('underscore');
+var async = require('async');
 var kijiji = require('kijiji-scraper');
 var GoogleSpreadsheet = require("google-spreadsheet");
+var express = require('express');
+var app = express();
 
-var sheet = new GoogleSpreadsheet(process.env.SPREADSHEET_KEY);
-var creds = {
-	client_email:process.env.CLIENT_EMAIL,
-	private_key:process.env.PRIVATE_KEY
-};
+// Globals
+var sheet, creds, locations, categories,existingGuids;
 
-var locations = process.env.LOCATION_IDS.split(','); // Toronto
-var categories = process.env.CATEGORY_IDS.split(','); // Motorcycles
-var existingGuids = [];
-
-sheet.useServiceAccountAuth(creds, function(err) {
-	if (err) {
-		return console.log(err);
-	}
-	
-	sheet.getInfo(fetchExistingGuids);
+// Web server
+app.get('/', function (req, res) {
+	initializeScraper();
+	res.send('Hello World!');
 });
+
+var server = app.listen(process.env.PORT || 5000, function () {
+  var host = server.address().address;
+  var port = server.address().port;
+
+  console.log('Example app listening at http://%s:%s', host, port);
+});
+
+var initializeScraper = function() {
+	locations = process.env.LOCATION_IDS.split(','); // Toronto
+	categories = process.env.CATEGORY_IDS.split(','); // Motorcycles
+	existingGuids = [];
+	
+	sheet = new GoogleSpreadsheet(process.env.SPREADSHEET_KEY);
+	creds = {
+		client_email:process.env.CLIENT_EMAIL,
+		private_key:process.env.PRIVATE_KEY
+	};
+	
+	sheet.useServiceAccountAuth(creds, function(err) {
+		if (err) {
+			return console.log(err);
+		}
+		
+		sheet.getInfo(fetchExistingGuids);
+	});
+}
 
 var fetchExistingGuids = function(err, sheetInfo) {
 	if (err) {
 		return console.log(err);
 	}
 	
-	sheet.getCells(1, { 'min-row':1, 'max-row':1000, 'min-col':7, 'max-col':7 }, function(err, cells) {
+	sheet.getCells(1, { 'min-row':1, 'max-row':1000, 'min-col':8, 'max-col':8 }, function(err, cells) {
 		if (err) {
 			return console.log(err);
 		}
@@ -51,7 +72,7 @@ var fetchAllAds = function() {
 }
 
 var fetchAds = function(locationId, categoryId) {
-	console.log('Fetching category #%d for location #%d, locationId, categoryId');
+	console.log('Fetching category #%s for location #%s, locationId, categoryId');
 	
 	var prefs = {
 		locationId:locationId,
@@ -59,6 +80,8 @@ var fetchAds = function(locationId, categoryId) {
 	};
 	
 	var params = {
+		minPrice:1000,
+		maxPrice:4000,
 		adType:'OFFER'
 	};
 
@@ -80,6 +103,7 @@ var writeToFile = function(ads) {
 		var row = {
 			guid:ad.guid,
 			title:ad.title,
+			date:ad['dc:date'],
 			price:ad.innerAd.info.Price,
 			colour:ad.innerAd.info.Colour,
 			kilometers:ad.innerAd.info.Kilometers,
@@ -102,4 +126,6 @@ var writeToFile = function(ads) {
 			console.log('successfully added row' );
 		});
 	});
+	
+	console.log('finished process' );
 }

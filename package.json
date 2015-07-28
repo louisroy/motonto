@@ -9,7 +9,9 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "async": "^1.4.0",
     "dotenv": "^1.2.0",
+    "express": "^4.13.1",
     "google-spreadsheet": "^1.0.1",
     "kijiji-scraper": "^1.2.0",
     "underscore": "^1.8.3"
