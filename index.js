@@ -190,6 +190,7 @@ var write = function(ads, callback) {
 		}
 		
 		// Prepare data
+		// TODO : data structure should be dynamic
 		var row = {
 			guid:ad.guid,
 			title:ad.title,
@@ -202,6 +203,8 @@ var write = function(ads, callback) {
 			year:parseInt(ad.innerAd.info['Year']),
 			engine:parseInt(ad.innerAd.info['Engine Displacement (cc)'])
 		};
+		
+		// TODO : create header if non-existent?
 		
 		// Filter out ads with missing info
 		for (var key in row) {
