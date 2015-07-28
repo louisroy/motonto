@@ -1,6 +1,6 @@
 # Motonto
 
-Fetches Kijiji ads stores them into a Google Spreadsheet.
+Fetches Kijiji ads and stores them into a Google Spreadsheet.
 
 ## Installation
 
