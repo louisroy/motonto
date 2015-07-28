@@ -145,8 +145,8 @@ var writeAds = function(ads, callback) {
 			kilometers:ad.innerAd.info['Kilometers'],
 			make:ad.innerAd.info['Make'],
 			model:ad.innerAd.info['Model'],
-			year:ad.innerAd.info['Year'],
-			engine:ad.innerAd.info['Engine Displacement (cc)']
+			year:parseInt(ad.innerAd.info['Year']),
+			engine:parseInt(ad.innerAd.info['Engine Displacement (cc)'])
 		};
 		
 		// Filter out ads with missing info
@@ -155,6 +155,12 @@ var writeAds = function(ads, callback) {
 				totalAds--;
 				return onProgress();
 			}
+		}
+		
+		// Additional filter, engine must be >= 500 <= 1100
+		if (row.engine < 500 || row.engine > 1100) {
+			totalAds--;
+			return onProgress();
 		}
 		
 		// Add ad to spreasheet
