@@ -102,7 +102,7 @@ var fetchAllAds = function(guids, callback) {
 };
 
 var fetchAds = function(locationId, categoryId, callback) {
-	console.log('Fetching category #%s for location #%s, locationId, categoryId');
+	console.log('Fetching category #%s for location #%s', locationId, categoryId);
 	
 	var prefs = {
 		locationId:locationId,
