@@ -5,7 +5,7 @@ require('dotenv').load();
 var _ = require('underscore');
 var async = require('async');
 var kijiji = require('kijiji-scraper');
-var GoogleSpreadsheet = require("google-spreadsheet");
+var spreadsheet = require("google-spreadsheet");
 var express = require('express');
 var app = express();
 
@@ -14,10 +14,12 @@ var sheet, creds, locations, categories, minPrice, maxPrice, existingGuids;
 
 // Web application
 app.get('/', function (req, res) {
-	init(function(err, writtenAds) {
+	initialize(function(err, writtenAds) {
 		if (err) {
+			// Something happened, display error
 			res.status(500).send("An error occured : " + err.message);
 		} else {
+			// Ads were fetched successfully
 			res.status(200).send("Successfully added " + writtenAds + " ads to spreadsheet.");
 		}
 	});
@@ -31,7 +33,11 @@ var server = app.listen(process.env.PORT || 5000, function () {
 	console.log('App listening at http://%s:%s', host, port);
 });
 
-var init = function(callback) {
+/**
+ * Initializes the app
+ * @param callback
+ */
+var initialize = function(callback) {
 	callback = callback || function() {};
 	
 	// Search paramaters
@@ -44,7 +50,7 @@ var init = function(callback) {
 	existingGuids = [];
 	
 	// Google spreadsheet
-	sheet = new GoogleSpreadsheet(process.env.SPREADSHEET_KEY);
+	sheet = new spreadsheet(process.env.SPREADSHEET_KEY);
 	creds = {
 		client_email:process.env.CLIENT_EMAIL,
 		private_key:process.env.PRIVATE_KEY
@@ -81,9 +87,12 @@ var authenticate = function(callback) {
  * @param callback
  */
 var analyze = function(sheetInfo, callback) {
+	// TODO : should fetch last 1000 rows and of first
+	// TODO : min-col and max-col should be dyanmic (last column)
 	sheet.getCells(1, { 'min-row':1, 'max-row':1000, 'min-col':9, 'max-col':9 }, function(err, cells) {
 		if (err) return callback(err);
 		
+		// Loop through all cells to fetch GUIDs
 		_.each(cells, function(cell) {
 			existingGuids.push(cell.value);
 		});
@@ -100,6 +109,7 @@ var analyze = function(sheetInfo, callback) {
 var fetch = function(guids, callback) {
 	var tasks = [];
 	
+	// For each location and category, add a task
 	_.each(locations, function(locationId) {
 		_.each(categories, function(categoryId) {
 			tasks.push(function(taskCallback) {
@@ -116,6 +126,7 @@ var fetch = function(guids, callback) {
 		var ads = [];
 			ads = ads.concat.apply(ads, adGroups);
 		
+		// Return flattened ads
 		callback(null, ads);
 	});
 };
@@ -129,11 +140,13 @@ var fetch = function(guids, callback) {
 var scrape = function(locationId, categoryId, callback) {
 	console.log('Fetching category #%s for location #%s', locationId, categoryId);
 	
+	// Search query
 	var prefs = {
 		locationId:locationId,
 		categoryId:categoryId
 	};
 	
+	// Search parameters
 	var params = {
 		minPrice:minPrice,
 		maxPrice:maxPrice,
@@ -143,6 +156,7 @@ var scrape = function(locationId, categoryId, callback) {
 	kijiji.query(prefs, params, function(err, ads) {
 		if (err) return callback(err);
 		
+		// Return ads
 		callback(null, ads);
 	});
 };
@@ -167,8 +181,9 @@ var write = function(ads, callback) {
 		}
 	};
 	
+	// Loop through each ads
 	_.each(ads, function(ad, index, list) {
-		// Check if ad is already in spreadsheet
+		// Skip ads that are already in the spreadsheet
 		if (existingGuids.indexOf(ad.guid) !== -1) {
 			totalAds--;
 			return onProgress();
