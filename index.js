@@ -48,9 +48,9 @@ var init = function(callback) {
 	
 	async.waterfall([
 		authenticate,
-		fetchExistingGuids,
-		fetchAllAds,
-		writeAds
+		analyze,
+		fetch,
+		write
 	], callback);
 };
 
@@ -66,7 +66,7 @@ var authenticate = function(callback) {
 	});
 };
 
-var fetchExistingGuids = function(sheetInfo, callback) {
+var analyze = function(sheetInfo, callback) {
 	sheet.getCells(1, { 'min-row':1, 'max-row':1000, 'min-col':9, 'max-col':9 }, function(err, cells) {
 		if (err) return callback(err);
 		
@@ -78,13 +78,13 @@ var fetchExistingGuids = function(sheetInfo, callback) {
 	});
 };
 
-var fetchAllAds = function(guids, callback) {
+var fetch = function(guids, callback) {
 	var tasks = [];
 	
 	_.each(locations, function(locationId) {
 		_.each(categories, function(categoryId) {
 			tasks.push(function(taskCallback) {
-				fetchAds(locationId, categoryId, taskCallback);
+				scrape(locationId, categoryId, taskCallback);
 			});
 		});
 	});
@@ -101,7 +101,7 @@ var fetchAllAds = function(guids, callback) {
 	});
 };
 
-var fetchAds = function(locationId, categoryId, callback) {
+var scrape = function(locationId, categoryId, callback) {
 	console.log('Fetching category #%s for location #%s', locationId, categoryId);
 	
 	var prefs = {
@@ -122,7 +122,7 @@ var fetchAds = function(locationId, categoryId, callback) {
 	});
 };
 
-var writeAds = function(ads, callback) {
+var write = function(ads, callback) {
 	var totalAds = ads.length;
 	var writtenAds = 0;
 	var onProgress = function() {
