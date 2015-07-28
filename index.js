@@ -10,12 +10,16 @@ var express = require('express');
 var app = express();
 
 // Globals
-var sheet, creds, locations, categories,existingGuids;
+var sheet, creds, locations, categories, minPrice, maxPrice, existingGuids;
 
 // Web server
 app.get('/', function (req, res) {
-	init(function(err, result) {
-		res.send('Hello World!');
+	init(function(err, writtenAds) {
+		if (err) {
+			res.status(500).send("An error occured : " + err.message);
+		} else {
+			res.status(200).send("Successfully added " + writtenAds + " ads to spreadsheet.");
+		}
 	});
 });
 
@@ -23,15 +27,14 @@ var server = app.listen(process.env.PORT || 5000, function () {
 	var host = server.address().address;
 	var port = server.address().port;
 	
-	init(function(err, writtenAds) {
-		console.log("Successfully added %s ads to spreadsheet.", writtenAds);
-	});
-	
 	console.log('Example app listening at http://%s:%s', host, port);
 });
 
 var init = function(callback) {
 	callback = callback || function() {};
+	
+	minPrice = process.env.MIN_PRICE;
+	maxPrice = process.env.MAX_PRICE;
 	
 	locations = process.env.LOCATION_IDS.split(','); // Toronto
 	categories = process.env.CATEGORY_IDS.split(','); // Motorcycles
@@ -107,8 +110,8 @@ var fetchAds = function(locationId, categoryId, callback) {
 	};
 	
 	var params = {
-		minPrice:1000,
-		maxPrice:4000,
+		minPrice:minPrice,
+		maxPrice:maxPrice,
 		adType:'OFFER'
 	};
 
