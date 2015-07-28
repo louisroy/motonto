@@ -88,7 +88,7 @@ var authenticate = function(callback) {
  */
 var analyze = function(sheetInfo, callback) {
 	// TODO : should fetch last 1000 rows and of first
-	// TODO : min-col and max-col should be dyanmic (last column)
+	// TODO : min-col and max-col should be dynamic (last column)
 	sheet.getCells(1, { 'min-row':1, 'max-row':1000, 'min-col':9, 'max-col':9 }, function(err, cells) {
 		if (err) return callback(err);
 		
