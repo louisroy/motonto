@@ -12,7 +12,7 @@ var app = express();
 // Globals
 var sheet, creds, locations, categories, minPrice, maxPrice, existingGuids;
 
-// Web server
+// Web application
 app.get('/', function (req, res) {
 	init(function(err, writtenAds) {
 		if (err) {
@@ -23,6 +23,7 @@ app.get('/', function (req, res) {
 	});
 });
 
+// Server
 var server = app.listen(process.env.PORT || 5000, function () {
 	var host = server.address().address;
 	var port = server.address().port;
@@ -33,19 +34,23 @@ var server = app.listen(process.env.PORT || 5000, function () {
 var init = function(callback) {
 	callback = callback || function() {};
 	
+	// Search paramaters
 	minPrice = process.env.MIN_PRICE;
 	maxPrice = process.env.MAX_PRICE;
-	
 	locations = process.env.LOCATION_IDS.split(','); // Toronto
 	categories = process.env.CATEGORY_IDS.split(','); // Motorcycles
+	
+	// Reset array
 	existingGuids = [];
 	
+	// Google spreadsheet
 	sheet = new GoogleSpreadsheet(process.env.SPREADSHEET_KEY);
 	creds = {
 		client_email:process.env.CLIENT_EMAIL,
 		private_key:process.env.PRIVATE_KEY
 	};
 	
+	// Waterfall process
 	async.waterfall([
 		authenticate,
 		analyze,
@@ -54,6 +59,10 @@ var init = function(callback) {
 	], callback);
 };
 
+/**
+ * Authenticates to Google API and makes sure we can write to spreasheet
+ * @param callback
+ */
 var authenticate = function(callback) {
 	sheet.useServiceAccountAuth(creds, function(err) {
 		if (err) return callback(err);
@@ -66,6 +75,11 @@ var authenticate = function(callback) {
 	});
 };
 
+/**
+ * Analyzes current spreadsheet and fetches all existing GUIDs for future use
+ * @param sheetInfo
+ * @param callback
+ */
 var analyze = function(sheetInfo, callback) {
 	sheet.getCells(1, { 'min-row':1, 'max-row':1000, 'min-col':9, 'max-col':9 }, function(err, cells) {
 		if (err) return callback(err);
@@ -78,6 +92,11 @@ var analyze = function(sheetInfo, callback) {
 	});
 };
 
+/**
+ * Prepares search requests for all search parameters
+ * @param guids
+ * @param callback
+ */
 var fetch = function(guids, callback) {
 	var tasks = [];
 	
@@ -101,6 +120,12 @@ var fetch = function(guids, callback) {
 	});
 };
 
+/**
+ * Scrapes Kijiji ads for a location and a category
+ * @param locationId
+ * @param categoryId
+ * @param callback
+ */
 var scrape = function(locationId, categoryId, callback) {
 	console.log('Fetching category #%s for location #%s', locationId, categoryId);
 	
@@ -122,10 +147,21 @@ var scrape = function(locationId, categoryId, callback) {
 	});
 };
 
+/**
+ * Writes ads to the spreadsheet
+ * @param ads
+ * @param callback
+ */
 var write = function(ads, callback) {
+	// Total number of ads
 	var totalAds = ads.length;
+	
+	// Number of ads written to spreadsheet
 	var writtenAds = 0;
+	
+	// Event handler
 	var onProgress = function() {
+		// Check if we have written as much as we have
 		if (writtenAds >= totalAds) {
 			callback(null, writtenAds);
 		}
