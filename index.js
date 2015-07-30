@@ -195,7 +195,7 @@ var write = function(ads, callback) {
 			guid:ad.guid,
 			title:ad.title,
 			date:ad['dc:date'],
-			price:ad.innerAd.info['Price'],
+			price:parseFloat(ad.innerAd.info['Price'].replace(/\$/, '')),
 			colour:ad.innerAd.info['Colour'],
 			kilometers:ad.innerAd.info['Kilometers'],
 			make:ad.innerAd.info['Make'],
